@@ -1,3 +1,8 @@
+; cray ray tracer
+; Copyright Hamish Hubbard
+; Contact: graphics at tu dot be
+; Licensed under the BSD license: http://creativecommons.org/licenses/BSD/
+
 ; Math library
 
 (ns cray.utils)
@@ -16,20 +21,19 @@
 (defn fpeq [a b] (and (< (- a b) epsilon) (< (- b a) epsilon)))
 (defn between? [n lower-bound upper-bound] (and (> n lower-bound) (< n upper-bound)))
 (defn min-max 
-	([[n1 n2]] (min-max n1 n2))
-	([n1 n2] (if (< n1 n2) [n1 n2] [n2 n1])))
+  ([[n1 n2]] (min-max n1 n2))
+  ([n1 n2] (if (< n1 n2) [n1 n2] [n2 n1])))
 (defn clamp [n a b] (cond (< n a) a
-													(> n b) b
-													true n))
-
+                      (> n b) b
+                      true n))
 
 (defn noise 
   "Generates a random number - TODO replace with a random number source better for 3D (e.g. Perlin noise)"
   ([] (noise -1.0 1.0))
   ([scale] (noise (- 0.0 (* 0.5 scale)) (* 0.5 scale)))
   ([lower-bound upper-bound] 
-     (let [noise-range (- lower-bound upper-bound)]
-       (* (rand noise-range) (* 0.5 noise-range)))))
+    (let [noise-range (- lower-bound upper-bound)]
+      (* (rand noise-range) (* 0.5 noise-range)))))
 
 (defn combinations 
   "Returns a sequence of all combinations of values in the inputs"
@@ -39,11 +43,11 @@
 ; Vector/Matrix library
 (defmacro make-vect
   ([x y z] `(let [v# (float-array 3 0)]
-     (aset v# 0 (float ~x))
-     (aset v# 1 (float ~y))
-     (aset v# 2 (float ~z))
-     v#))
-   ([xyz] `(into-array Float/TYPE ~xyz)))
+              (aset v# 0 (float ~x))
+              (aset v# 1 (float ~y))
+              (aset v# 2 (float ~z))
+              v#))
+  ([xyz] `(into-array Float/TYPE ~xyz)))
 
 ;(defmacro vx [vect] `(aget ~vect 0))
 ;(defmacro vy [vect] `(aget ~vect 1))
@@ -61,48 +65,48 @@
 
 (defn vec-sub [#^floats v1 #^floats v2] 
   (make-vect (- (vx v1) (vx v2)) 
-	     (- (vy v1) (vy v2)) 
-	     (- (vz v1) (vz v2))))
+    (- (vy v1) (vy v2))
+    (- (vz v1) (vz v2))))
 
 (defn vec-add 
   ([vecs] (reduce vec-add vecs))
   ([#^floats v1 #^floats v2] 
-  	(make-vect (+ (vx v1) (vx v2)) 
-							 (+ (vy v1) (vy v2))
-					     (+ (vz v1) (vz v2))))
+    (make-vect (+ (vx v1) (vx v2))
+      (+ (vy v1) (vy v2))
+      (+ (vz v1) (vz v2))))
   ([#^floats v1 #^floats v2 & more] 
-  	(apply vec-add (vec-add v1 v2) more)))
+    (apply vec-add (vec-add v1 v2) more)))
 
 (defn vec-mul [#^floats v1 #^floats v2] 
   (make-vect (* (vx v1) (vx v2)) 
-	     (* (vy v1) (vy v2)) 
-	     (* (vz v1) (vz v2))))
+    (* (vy v1) (vy v2))
+    (* (vz v1) (vz v2))))
 
 (defn vec-scale [n #^floats v] 
   (make-vect (* n (vx v)) 
-	     (* n (vy v)) 
-	     (* n (vz v))))
+    (* n (vy v))
+    (* n (vz v))))
 
 (defn vec-length 
   "Calculates the length of a vector"
   [#^floats v] 
   (sqrt (+ (+ (* (vx v) (vx v)) 
-	      (* (vy v) (vy v))) 
-	   (* (vz v) (vz v)))))
+             (* (vy v) (vy v)))
+          (* (vz v) (vz v)))))
 
 (defn dot 
   "Calculates the dot product (cosine of the angle between two vectors)"
   [#^floats v1 #^floats v2] 
   (+ (+ (* (vx v1) (vx v2)) 
-				(* (vy v1) (vy v2))) 
-     (* (vz v1) (vz v2)))) ; (Two-operand '+' is faster, replacing dot with a macro costs performance)
+       (* (vy v1) (vy v2)))
+    (* (vz v1) (vz v2)))) ; (Two-operand '+' is faster, replacing dot with a macro costs performance)
 
 (defn cross 
   "Calculates the cross product of two vectors (a vector perpendicular to the plane containing v1 and v2"
   [#^floats v1 #^floats v2] 
   (make-vect (- (* (vy v1) (vz v2)) (* (vz v1) (vy v2))) 
-	     (- (* (vz v1) (vx v2)) (* (vx v1) (vz v2))) 
-	     (- (* (vx v1) (vy v2)) (* (vy v1) (vx v2)))))
+    (- (* (vz v1) (vx v2)) (* (vx v1) (vz v2)))
+    (- (* (vx v1) (vy v2)) (* (vy v1) (vx v2)))))
 
 (defn normalize 
   "Returns the unit vector (v is scaled so its' length is 1"
@@ -114,17 +118,17 @@
   (str (seq v)))
 
 (defn vec-replace-coord
-	"Convert a split co-ordinate into the co-ordinates to split the box on"
-	[axis value v]
-	(make-vect (if (= axis vx) value (vx v))
-						 (if (= axis vy) value (vy v))
-						 (if (= axis vz) value (vz v))))
+  "Convert a split co-ordinate into the co-ordinates to split the box on"
+  [axis value v]
+  (make-vect (if (= axis vx) value (vx v))
+    (if (= axis vy) value (vy v))
+    (if (= axis vz) value (vz v))))
 
 (defn axis-next
-	"Used for interating through x,y,z axes."
-	[axis] (if (= axis vx) 
-						vy 
-						(if (= axis vy) vz vx)))
+  "Used for interating through x,y,z axes."
+  [axis] (if (= axis vx)
+           vy
+           (if (= axis vy) vz vx)))
 
 (defn make-random-vect 
   ([] (normalize (make-random-vect 1.0)))
@@ -138,9 +142,9 @@
 (defn mat-transform 
   "Transform vector v using matrix m"
   [m v] 
-  (make-vect (+ (+ (* (vx v) (nth m 0)) (* (vy v) (nth m 1)) (* (vz v) (nth m 2))) (nth m 3))
-	     (+ (* (vx v) (nth m 4)) (* (vy v) (nth m 5)) (* (vz v) (nth m 6)) (nth m 7))
-	     (+ (* (vx v) (nth m 8)) (* (vy v) (nth m 9)) (* (vz v) (nth m 10)) (nth m 11))))
+  (make-vect (+ (+ (* (vx v) (m 0)) (* (vy v) (m 1)) (* (vz v) (m 2))) (m 3))
+    (+ (* (vx v) (m 4)) (* (vy v) (m 5)) (* (vz v) (m 6)) (m 7))
+    (+ (* (vx v) (m 8)) (* (vy v) (m 9)) (* (vz v) (m 10)) (m 11))))
 
 ; Helper functions
 (defmacro col-if [condition success] 
@@ -156,11 +160,10 @@
   "Convert colour to 32-bit integer in ARGB format"
   [scale-factor c] 
   (let [col (vec-scale (* 255 scale-factor) c)]
-    (int (+ (+ 
-	     (+ (bit-shift-left 255 24) ; Alpha
-		(bit-shift-left (int (vr col)) 16))
-	     (bit-shift-left (int (vg col)) 8))
-	    (int (vb col))))))
+    (int (+ (+ (+ (bit-shift-left 255 24) ; Alpha
+                 (bit-shift-left (int (vr col)) 16))
+              (bit-shift-left (int (vg col)) 8))
+           (int (vb col))))))
 
 (defn unpack-byte [packed-int byte-index]
   (bit-and 255 (bit-shift-right packed-int (* byte-index 8))))
@@ -169,17 +172,16 @@
 
 (defn unpack-colour [rgba] 
   (vec-scale inv-255 (make-colour (unpack-byte rgba 2)
-				  (unpack-byte rgba 1)
-				  (unpack-byte rgba 0))))
-  
+                       (unpack-byte rgba 1)
+                       (unpack-byte rgba 0))))
+
 (defn unpack-normal 
   "Converts a normal that has been packed into RGBA space into a vector"
   [rgba] 
   (vec-add (vec-scale 2 (unpack-colour rgba)) 
-	   (make-vect -1.0 -1.0 -1.0)))
-  
-  
+    (make-vect -1.0 -1.0 -1.0)))
+
+
 (defn default [a b] (if a a b))
 
 
-	     
