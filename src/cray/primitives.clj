@@ -148,8 +148,8 @@ slightly 'inside' the primitive and then intersect with its inside, causing arti
   			min-distance (reduce #(+ %1 %2) min-distance-vals)]
 	(<= min-distance (pow2 (sphere :radius)))))
 
-(defn calc-v-min [n d bx] (if (> n 0.0) (- 0.0 bx d) (- bx d)))
-(defn calc-v-max [n d bx] (if (> n 0.0) (- bx d) (- 0.0 bx d)))
+(defn calc-v-min [n d bx] (float (if (> n 0.0) (- 0.0 bx d) (- bx d))))
+(defn calc-v-max [n d bx] (float (if (> n 0.0) (- bx d) (- 0.0 bx d))))
 	
 ; See http://www.cs.lth.se/home/Tomas_Akenine_Moller/code/tribox3.txt
 (defn intersect-plane-box? 
@@ -296,13 +296,12 @@ slightly 'inside' the primitive and then intersect with its inside, causing arti
 				sin-phi (sin phi)
 				theta (if (fpeq sin-phi 0.0)
 							1.0
-							(/ (acos (/ (dot vp sphere-left) 
-			    								(sin phi))) 
-		   					 (* 2 pi)))
+							(/ (acos (clamp (/ (dot vp sphere-left) sin-phi) -1.0 1.0)) 
+		   					 (* 2.0 pi)))
 				u (* u-scale
 	     			(if (fpeq phi 0.0) 
 	       			1.0 
-	       			(if (> (dot (cross sphere-up sphere-left) vp) 0)
+	       			(if (> (dot (cross sphere-up sphere-left) vp) 0.0)
 		 						theta
 		 						(- 1.0 theta))))]
 		[u v]))

@@ -61,7 +61,7 @@
 				vertex-count (Integer/parseInt (nth fileinfo 0))
 				face-count (Integer/parseInt (nth fileinfo 1))
 				vertices (map (fn parse [vertex] 
-				(make-vect (map #(+ 0.02 (Double/parseDouble (nth vertex %))) (range 3))))			
+				(make-vect (map #(+ (float 0.001) (Float/parseFloat (nth vertex %))) (range 3))))			
 		      (map #(seq (.split % " ")) (take vertex-count (drop 2 lines))))
 				indices (map (fn parse-indices [index] 
 		       (map #(Integer/parseInt (nth index %)) (range 3)))

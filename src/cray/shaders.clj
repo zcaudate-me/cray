@@ -50,8 +50,8 @@
   (fn [[u v]] 
     (let [width (. image getWidth)
 	  height (. image getHeight)]
-      (unpack-colour (. image getRGB (max 0 (rem (* u width) width)) 
-		                    (max 0 (rem (* v height) height)))))))
+      (unpack-colour (. image getRGB (max 0.0 (rem (* u width) width)) 
+		                    (max 0.0 (rem (* v height) height)))))))
 					  
 (defn checkerboard-texture [col1 col2] 
   (fn [[u v]]
