@@ -139,7 +139,11 @@ TODO - enhance with more 'even' randomness, circular camera apeture instead of s
   (concat (repeat oversampling zero-vec)
 	  (take (- sample-count oversampling) (repeatedly #(make-random-vect amount)))))
 
-(defn make-render-band 
+(defn set-pixel [image x y x-res samples]
+	(aset-int image (+ (* y x-res) x) 
+		(pack-colour (/ 1.0 (count samples)) (vec-add samples))))
+	
+(defn trace-band 
   [image scene band] 
   (let [{:keys [x-res y-res shadow-samples soft-shadow-width look-at viewpoint camera-up
   							depth-of-field depth-of-field-samples oversampling screen-width image-bands]} (scene :settings)
@@ -168,8 +172,7 @@ TODO - enhance with more 'even' randomness, circular camera apeture instead of s
 		       samples (map #(trace-ray (make-start-ray x y dx dy top-left virtual-viewpoint %1 %2) 
 																		scene all-lights light-vecs)
 				    					oversampling-jitter dof-jitter)]
-		   (aset-int image (+ (* y x-res) x) 
-			     (pack-colour (/ 1 sample-count) (vec-add samples))))))))
+			(set-pixel image x y x-res samples))))))
 
 (defn build-scene-tree 
 	"Build bsp or kd-tree as specified on the settings."
@@ -185,14 +188,8 @@ TODO - enhance with more 'even' randomness, circular camera apeture instead of s
 	"Split the image up into bands and assign each one to an agent, then queue them up for execution."
 	[scene]
 	(let [settings (scene :settings)
-				image (make-array Integer/TYPE (* (settings :x-res) (settings :y-res) 3))
-				agents (map agent (range (settings :image-bands)))]
-    (doseq [band agents]
-      (send band #(make-render-band image scene %)))
-    (apply await agents)
-    (doseq [a agents] 
-    	(doseq [e (agent-errors a)] 
-    		(prn (. e printStackTrace))))
+				image (make-array Integer/TYPE (* (settings :x-res) (settings :y-res) 3))]
+		(doall (pmap #(trace-band image scene %) (range (settings :image-bands)))) 
 		image))
  	
 (defn trace  

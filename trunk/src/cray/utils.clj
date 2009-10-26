@@ -2,11 +2,11 @@
 
 (ns cray.utils)
 
-(def epsilon 0.00000001) ; Limit of precision for floating point comparisons
+(def epsilon 0.00001) ; Limit of precision for floating point comparisons
 (def pi (. Math PI))
 
 (defmacro sqrt [n] `(. Math sqrt ~n))
-(defn abs [#^Double n] (. Math abs n))
+(defn abs [#^Float n] (. Math abs n))
 (defmacro acos [n] `(. Math acos ~n))	
 (defmacro sin [n] `(. Math sin ~n))
 (defmacro pow [n m] `(. Math pow ~n ~m))
@@ -18,6 +18,10 @@
 (defn min-max 
 	([[n1 n2]] (min-max n1 n2))
 	([n1 n2] (if (< n1 n2) [n1 n2] [n2 n1])))
+(defn clamp [n a b] (cond (< n a) a
+													(> n b) b
+													true n))
+
 
 (defn noise 
   "Generates a random number - TODO replace with a random number source better for 3D (e.g. Perlin noise)"
@@ -34,12 +38,12 @@
 
 ; Vector/Matrix library
 (defmacro make-vect
-  ([x y z] `(let [v# (double-array 3 0)]
-     (aset v# 0 (double ~x))
-     (aset v# 1 (double ~y))
-     (aset v# 2 (double ~z))
+  ([x y z] `(let [v# (float-array 3 0)]
+     (aset v# 0 (float ~x))
+     (aset v# 1 (float ~y))
+     (aset v# 2 (float ~z))
      v#))
-   ([xyz] `(into-array Double/TYPE ~xyz)))
+   ([xyz] `(into-array Float/TYPE ~xyz)))
 
 ;(defmacro vx [vect] `(aget ~vect 0))
 ;(defmacro vy [vect] `(aget ~vect 1))
@@ -55,54 +59,54 @@
 
 (def zero-vec (make-vect 0.0 0.0 0.0))
 
-(defn vec-sub [#^doubles v1 #^doubles v2] 
+(defn vec-sub [#^floats v1 #^floats v2] 
   (make-vect (- (vx v1) (vx v2)) 
 	     (- (vy v1) (vy v2)) 
 	     (- (vz v1) (vz v2))))
 
 (defn vec-add 
   ([vecs] (reduce vec-add vecs))
-  ([#^doubles v1 #^doubles v2] 
+  ([#^floats v1 #^floats v2] 
   	(make-vect (+ (vx v1) (vx v2)) 
 							 (+ (vy v1) (vy v2))
 					     (+ (vz v1) (vz v2))))
-  ([#^doubles v1 #^doubles v2 & more] 
+  ([#^floats v1 #^floats v2 & more] 
   	(apply vec-add (vec-add v1 v2) more)))
 
-(defn vec-mul [#^doubles v1 #^doubles v2] 
+(defn vec-mul [#^floats v1 #^floats v2] 
   (make-vect (* (vx v1) (vx v2)) 
 	     (* (vy v1) (vy v2)) 
 	     (* (vz v1) (vz v2))))
 
-(defn vec-scale [n #^doubles v] 
+(defn vec-scale [n #^floats v] 
   (make-vect (* n (vx v)) 
 	     (* n (vy v)) 
 	     (* n (vz v))))
 
 (defn vec-length 
   "Calculates the length of a vector"
-  [#^doubles v] 
+  [#^floats v] 
   (sqrt (+ (+ (* (vx v) (vx v)) 
 	      (* (vy v) (vy v))) 
 	   (* (vz v) (vz v)))))
 
 (defn dot 
   "Calculates the dot product (cosine of the angle between two vectors)"
-  [#^doubles v1 #^doubles v2] 
+  [#^floats v1 #^floats v2] 
   (+ (+ (* (vx v1) (vx v2)) 
 				(* (vy v1) (vy v2))) 
      (* (vz v1) (vz v2)))) ; (Two-operand '+' is faster, replacing dot with a macro costs performance)
 
 (defn cross 
   "Calculates the cross product of two vectors (a vector perpendicular to the plane containing v1 and v2"
-  [#^doubles v1 #^doubles v2] 
+  [#^floats v1 #^floats v2] 
   (make-vect (- (* (vy v1) (vz v2)) (* (vz v1) (vy v2))) 
 	     (- (* (vz v1) (vx v2)) (* (vx v1) (vz v2))) 
 	     (- (* (vx v1) (vy v2)) (* (vy v1) (vx v2)))))
 
 (defn normalize 
   "Returns the unit vector (v is scaled so its' length is 1"
-  [#^doubles v] (vec-scale (/ 1.0 (vec-length v)) v))
+  [#^floats v] (vec-scale (/ 1.0 (vec-length v)) v))
 
 (defn str-vec 
   "Converts vectors to strings, handy for debugging"
